@@ -3,9 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#222427">
 <title>Relight</title>
 <style>
+/* Design read: dark studio tool for photographers. One accent (the live light color, called the gel),
+   one radius scale, one palette. Controls use hairlines and spacing instead of cards.
+   Shape rule: rectangular controls use --r, nested controls use --r-in, single-value tokens (knob, swatch, switch) are circles/pills. */
 :root{
+  color-scheme:dark;
   --font:"Avenir Next","Segoe UI Variable","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",sans-serif;
   --bg:#2a2c2f;
   --bg2:#363a3e;
@@ -13,176 +19,197 @@
   --raise:#2d3034;
   --raise2:#3a3e44;
   --line:#3c4046;
+  --line2:#4b5057;
   --ink:#ebe8e2;
-  --mute:#9ba0a7;
+  --mute:#a3a8af;
   --track:#43474d;
   --gel:#ffd9ab;
   --gel-ink:#1a1b1d;
-  --stage-h:46vh;
+  --r:10px;
+  --r-in:7px;
+  --stage-h:44vh;
+  --z-ui:2;
+  --z-toast:3;
+  --z-veil:4;
+  --z-error:5;
+  --z-sheet:20;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:var(--panel);color:var(--ink);font:14px/1.4 var(--font);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
-button{font:inherit;color:inherit}
+[hidden]{display:none!important}
+html,body{height:100%;background:var(--panel);color:var(--ink);font:14px/1.45 var(--font);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+@media (pointer:fine){html{overscroll-behavior:none}}
+button{font:inherit;color:inherit;touch-action:manipulation}
+h1,h2{text-wrap:balance}
+p{text-wrap:pretty}
 :focus-visible{outline:2px solid var(--gel);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:8px;top:-64px;z-index:var(--z-sheet);padding:8px 14px;border-radius:var(--r);background:var(--gel);color:var(--gel-ink);font-weight:650;text-decoration:none}
+.skip:focus{top:8px}
+body.dragging{user-select:none;-webkit-user-select:none}
 
 .app{display:flex;flex-direction:column;height:100vh;height:100dvh;min-height:560px}
 
 /* header */
-.bar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;height:52px;padding:0 12px;border-bottom:1px solid var(--line);background:var(--panel)}
-.brand{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:650;letter-spacing:-.015em}
-.brand .mark{color:var(--gel)}
+.bar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;height:56px;padding:0 max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));border-bottom:1px solid var(--line);background:var(--panel)}
+.brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;letter-spacing:-.02em}
+.mark{flex:none;width:20px;height:20px;border-radius:50%;border:2px solid var(--gel);background:radial-gradient(circle,var(--gel) 0 34%,transparent 38%)}
 .actions{display:flex;align-items:center;gap:6px}
-.btn{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:var(--raise);cursor:pointer;white-space:nowrap;text-decoration:none;font-size:13.5px}
-.btn:hover{border-color:#5a5f67}
-.btn svg{width:16px;height:16px;flex:none}
-.btn.primary{background:var(--gel);color:var(--gel-ink);border-color:transparent;font-weight:600}
-.btn.primary:hover{filter:brightness(1.06)}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 14px;border-radius:var(--r);border:1px solid var(--line2);background:var(--raise);cursor:pointer;white-space:nowrap;text-decoration:none;font-size:13.5px;font-weight:500;transition:background-color .12s,border-color .12s,transform .12s}
+.btn:hover{background:var(--raise2);border-color:#5d636b}
+.btn:active{transform:translateY(1px) scale(.98)}
+.btn.primary{background:var(--gel);color:var(--gel-ink);border-color:transparent;font-weight:650}
+.btn.primary:hover{filter:brightness(1.07)}
 .btn.ghost{background:transparent;border-color:transparent;color:var(--mute)}
-.btn.ghost:hover{color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{color:var(--ink);background:var(--raise)}
 
 /* work area */
 .work{flex:1;min-height:0;display:flex;flex-direction:column}
-.stage{position:relative;flex:none;height:var(--stage-h);overflow:hidden;background:radial-gradient(130% 100% at 50% 32%,var(--bg2),var(--bg) 70%)}
-#gl{position:absolute;display:block;box-shadow:0 10px 40px rgba(0,0,0,.35)}
-#ui{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair;outline:none}
+.stage{position:relative;flex:none;height:var(--stage-h);overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;background:radial-gradient(130% 100% at 50% 32%,var(--bg2),var(--bg) 70%)}
+#gl{position:absolute;display:block;box-shadow:0 12px 40px rgba(8,10,12,.4)}
+#ui{position:absolute;inset:0;z-index:var(--z-ui);width:100%;height:100%;touch-action:none;cursor:crosshair;outline:none}
 #ui:focus-visible{outline:2px solid var(--gel);outline-offset:-3px}
-.viewseg{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);display:flex;gap:2px;padding:3px;border-radius:10px;background:rgba(24,26,28,.84);border:1px solid var(--line);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.viewseg button{height:28px;padding:0 13px;border:0;border-radius:7px;background:transparent;color:var(--mute);cursor:pointer;font-size:13px}
+.viewseg{position:absolute;left:50%;bottom:8px;z-index:var(--z-toast);transform:translateX(-50%);display:flex;gap:2px;padding:3px;border-radius:var(--r);background:rgba(24,26,28,.86);border:1px solid var(--line);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.viewseg button{height:30px;padding:0 14px;border:0;border-radius:var(--r-in);background:transparent;color:var(--mute);cursor:pointer;font-size:13px;font-weight:500;transition:background-color .12s,color .12s}
+.viewseg button:hover{color:var(--ink)}
 .viewseg button[aria-pressed=true]{background:var(--raise2);color:var(--ink)}
-.toast{position:absolute;left:50%;top:10px;transform:translate(-50%,-8px);max-width:calc(100% - 24px);padding:7px 12px;border-radius:9px;background:rgba(20,22,24,.92);border:1px solid var(--line);font-size:13px;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:3}
+.toast{position:absolute;left:50%;top:10px;z-index:var(--z-toast);transform:translate(-50%,-8px);display:flex;align-items:center;gap:12px;max-width:calc(100% - 24px);padding:8px 12px;border-radius:var(--r);background:rgba(20,22,24,.94);border:1px solid var(--line2);font-size:13px;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}
 .toast.on{opacity:1;transform:translate(-50%,0)}
-.veil{position:absolute;inset:8px;display:none;align-items:center;justify-content:center;border:2px dashed var(--gel);border-radius:14px;background:rgba(30,32,35,.78);font-size:15px;pointer-events:none;z-index:4}
+.toast.act{pointer-events:auto}
+.toast span{min-width:0;overflow-wrap:anywhere}
+.toast-act{flex:none;height:28px;padding:0 10px;border:0;border-radius:var(--r-in);background:var(--gel);color:var(--gel-ink);font-weight:650;font-size:12.5px;cursor:pointer}
+.veil{position:absolute;inset:8px;z-index:var(--z-veil);display:none;align-items:center;justify-content:center;border:2px dashed var(--gel);border-radius:var(--r);background:rgba(30,32,35,.8);font-size:15px;pointer-events:none}
 .veil.on{display:flex}
-.glerr{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:20px;text-align:center;background:var(--bg);font-size:14px}
-.glerr[hidden]{display:none}
-.glerr small{color:var(--mute);max-width:560px;max-height:120px;overflow:auto;font-size:11.5px;white-space:pre-wrap;text-align:left}
+.glerr{position:absolute;inset:0;z-index:var(--z-error);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:20px;text-align:center;background:var(--bg);font-size:14px}
+.glerr small{color:var(--mute);max-width:560px;max-height:120px;overflow:auto;font-size:12px;white-space:pre-wrap;text-align:left}
 
 /* panel */
-.panel{flex:1;min-height:0;overflow-y:auto;padding:12px 14px calc(20px + env(safe-area-inset-bottom));background:var(--panel)}
-.dock{display:flex;overflow-x:auto;scrollbar-width:none;padding-bottom:10px;-webkit-overflow-scrolling:touch}
+.panel{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:14px max(14px,env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));background:var(--panel)}
+.dock{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
 .dock::-webkit-scrollbar{display:none}
-.grp{display:flex;align-items:center;gap:6px;flex:none}
-.grp+.grp{margin-left:10px;padding-left:10px;border-left:1px solid var(--line)}
-.rowhead{display:none;font-size:12.5px;color:var(--mute)}
-.chip{flex:none;height:32px;padding:0 13px;border-radius:16px;border:1px solid var(--line);background:var(--raise);font-size:13px;cursor:pointer;white-space:nowrap}
-.chip:hover{border-color:#5a5f67}
-.chip[aria-pressed=true]{border-color:var(--gel);box-shadow:inset 0 0 0 1px var(--gel)}
+.grp{flex:none}
+.grp+.grp{padding-left:10px;border-left:1px solid var(--line)}
+.chips{display:flex;gap:6px}
+.chip{flex:none;height:34px;padding:0 13px;border-radius:var(--r);border:1px solid var(--line2);background:var(--raise);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background-color .12s,border-color .12s,transform .12s}
+.chip:hover{background:var(--raise2)}
+.chip:active{transform:scale(.98)}
+.chip[aria-pressed=true]{border-color:var(--gel);background:var(--raise2);background:color-mix(in srgb,var(--gel) 16%,var(--raise))}
 
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:3px;margin:2px 0 14px;border-radius:10px;background:var(--raise)}
-.tab{height:32px;border:0;border-radius:8px;background:transparent;color:var(--mute);cursor:pointer;font-size:13.5px}
-.tab[aria-selected=true]{background:var(--raise2);color:var(--ink)}
+.tabs{display:flex;gap:20px;margin:14px 0 18px;border-bottom:1px solid var(--line)}
+.tab{position:relative;height:40px;padding:0 2px;border:0;background:transparent;color:var(--mute);cursor:pointer;font-size:14px;font-weight:600;transition:color .12s}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected=true]{color:var(--ink)}
+.tab[aria-selected=true]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--gel)}
 
-.ctl{margin-bottom:14px}
-.ctl .top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:2px}
-.ctl label,.ctl .lbl{font-size:13.5px}
+.ctl{margin-bottom:12px}
+.ctl .top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.ctl .lbl{font-size:13.5px}
 .ctl output{font-size:12.5px;color:var(--mute);font-variant-numeric:tabular-nums;white-space:nowrap}
-.sub{font-size:12.5px;color:var(--mute);margin:-2px 0 8px}
 
-input[type=range]{-webkit-appearance:none;appearance:none;display:block;width:100%;height:28px;margin:0;background:transparent;touch-action:pan-y;cursor:pointer}
-input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:var(--tb,linear-gradient(to right,var(--gel) var(--p,50%),var(--track) var(--p,50%)))}
-input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:var(--tb2,var(--track))}
-input[type=range]::-moz-range-progress{height:6px;border-radius:3px;background:var(--prog,var(--gel))}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;margin-top:-8px;border-radius:50%;background:var(--ink);border:3px solid var(--panel);box-shadow:0 0 0 1px #555a61}
-input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--ink);border:3px solid var(--panel);box-shadow:0 0 0 1px #555a61}
+/* custom slider: only moves when the handle is grabbed (touch) or dragged (mouse), so page scrolling never changes it */
+.sl{position:relative;height:36px;touch-action:pan-y;cursor:pointer;outline:none;user-select:none;-webkit-user-select:none}
+.sl .rail{position:absolute;left:0;right:0;top:50%;height:4px;margin-top:-2px;border-radius:2px;background:var(--tb,var(--track))}
+.sl .fill{position:absolute;left:0;top:50%;height:4px;margin-top:-2px;border-radius:2px;background:var(--gel);width:calc(11px + var(--f,.5) * (100% - 22px))}
+.sl.plain .fill{display:none}
+.sl .knob{position:absolute;top:50%;left:calc(var(--f,.5) * (100% - 22px));width:22px;height:22px;margin-top:-11px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 3px var(--panel),0 0 0 4px var(--line2)}
+.sl:focus-visible .knob{box-shadow:0 0 0 3px var(--panel),0 0 0 5px var(--gel)}
+.sl.drag .knob{box-shadow:0 0 0 3px var(--panel),0 0 0 6px var(--gel)}
 
-.seg{display:flex;gap:2px;padding:3px;border-radius:9px;background:var(--raise)}
-.seg button{flex:1;height:28px;border:0;border-radius:6px;background:transparent;color:var(--mute);cursor:pointer;font-size:13px}
+.seg{display:flex;gap:2px;padding:3px;border-radius:var(--r);background:var(--raise)}
+.seg button{flex:1;height:30px;border:0;border-radius:var(--r-in);background:transparent;color:var(--mute);cursor:pointer;font-size:13px;font-weight:500;transition:background-color .12s,color .12s}
+.seg button:hover{color:var(--ink)}
 .seg button[aria-pressed=true]{background:var(--raise2);color:var(--ink)}
-.colorblock{padding-top:4px;border-top:1px solid var(--line);margin-top:4px}
-.colorblock .top{margin:12px 0 8px}
-.nowchip{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:7px;border:1px solid rgba(255,255,255,.35)}
-.gels{display:flex;gap:10px;margin:2px 0 6px;flex-wrap:wrap}
-.gel{width:30px;height:30px;border-radius:50%;border:2px solid var(--panel);box-shadow:0 0 0 1px #555a61;cursor:pointer}
-.gel:hover{box-shadow:0 0 0 2px var(--ink)}
 
-.row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-.row .txt{min-width:0}
-.row .txt small{display:block;color:var(--mute);font-size:12.5px}
-.switch{flex:none;position:relative;width:46px;height:28px;border-radius:14px;border:0;background:var(--track);cursor:pointer;transition:background .15s}
-.switch .knob{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--ink);transition:transform .15s}
+.block{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.block .head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;font-size:13.5px;font-weight:600}
+.block .head output{font-weight:400;font-size:12.5px;color:var(--mute);font-variant-numeric:tabular-nums}
+.nowchip{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:7px;border:1px solid rgba(255,255,255,.35)}
+.sub{font-size:12.5px;color:var(--mute);margin:6px 0 8px}
+.gels{display:flex;gap:10px;flex-wrap:wrap}
+.gel{width:32px;height:32px;border-radius:50%;border:2px solid var(--panel);box-shadow:0 0 0 1px var(--line2);cursor:pointer;transition:box-shadow .12s,transform .12s}
+.gel:hover{box-shadow:0 0 0 2px var(--ink)}
+.gel:active{transform:scale(.94)}
+
+.row{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:4px 0 14px}
+.row .txt{min-width:0;font-size:13.5px}
+.row .txt small{display:block;color:var(--mute);font-size:12.5px;line-height:1.4}
+.switch{flex:none;position:relative;width:46px;height:28px;border-radius:14px;border:0;background:var(--track);cursor:pointer;transition:background-color .15s}
+.switch .sw-knob{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--ink);transition:transform .15s,background-color .15s}
 .switch[aria-checked=true]{background:var(--gel)}
-.switch[aria-checked=true] .knob{transform:translateX(18px);background:var(--gel-ink)}
-.hint{color:var(--mute);font-size:12.5px;line-height:1.5;margin-top:2px}
-.foot{display:flex;justify-content:flex-end;margin-top:6px}
+.switch[aria-checked=true] .sw-knob{transform:translateX(18px);background:var(--gel-ink)}
+.hint{color:var(--mute);font-size:12.5px;line-height:1.5;margin-top:4px}
+.foot{display:flex;justify-content:flex-end;margin-top:12px}
 
 /* export sheet */
-.sheet{position:fixed;inset:0;z-index:20;display:flex;align-items:flex-end;justify-content:center;background:rgba(10,11,12,.62)}
-.sheet[hidden]{display:none}
-.card{width:min(540px,100%);max-height:94%;overflow:auto;padding:16px 16px calc(16px + env(safe-area-inset-bottom));border:1px solid var(--line);border-radius:16px 16px 0 0;background:var(--panel)}
+.sheet{position:fixed;inset:0;z-index:var(--z-sheet);display:flex;align-items:flex-end;justify-content:center;background:rgba(10,11,12,.66)}
+.card{width:min(540px,100%);max-height:94%;overflow:auto;overscroll-behavior:contain;padding:16px 16px calc(16px + env(safe-area-inset-bottom));border:1px solid var(--line);border-radius:var(--r) var(--r) 0 0;background:var(--panel)}
 .card h2{font-size:17px;font-weight:650;margin-bottom:12px}
-.pv{display:flex;align-items:center;justify-content:center;min-height:150px;margin-bottom:12px;border-radius:10px;background:var(--bg);overflow:hidden}
-.pv img{display:block;max-width:100%;max-height:40vh;-webkit-touch-callout:default}
+.pv{display:flex;align-items:center;justify-content:center;min-height:150px;margin-bottom:12px;border-radius:var(--r);background:var(--bg);overflow:hidden}
+.pv img{display:block;width:auto;height:auto;max-width:100%;max-height:40vh}
 .pv span{color:var(--mute);font-size:13px;padding:20px;text-align:center}
-.meta{font-size:13px;color:var(--mute);margin-bottom:12px;min-height:20px}
+.meta{font-size:13px;color:var(--mute);margin-bottom:12px;min-height:20px;font-variant-numeric:tabular-nums}
 .card .seg{margin-bottom:12px}
 .btns{display:flex;gap:8px}
-.btns .btn{flex:1;justify-content:center;height:40px}
+.btns .btn{flex:1;height:42px}
 .btns .btn[aria-disabled=true]{opacity:.45;pointer-events:none}
-@media (min-width:900px){
-  .sheet{align-items:center}
-  .card{border-radius:16px}
-}
 
-/* desktop layout */
+/* desktop */
 @media (min-width:900px){
   .work{flex-direction:row}
   .stage{flex:1;height:auto}
-  .panel{flex:none;width:368px;border-left:1px solid var(--line);padding:16px 18px 24px}
-  .dock{flex-direction:column;overflow:visible;gap:14px;padding-bottom:16px}
-  .grp{flex-wrap:wrap;gap:6px}
-  .grp+.grp{margin:0;padding:0;border:0}
-  .rowhead{display:block;width:100%}
+  .panel{flex:none;width:372px;border-left:1px solid var(--line);padding:18px 20px 28px}
+  .dock{display:block;overflow:visible;padding-bottom:0}
+  .grp+.grp{margin-top:18px;padding:0;border:0}
+  .rowhead{position:static;width:auto;height:auto;clip:auto;overflow:visible;white-space:normal;margin-bottom:8px;font-size:13px;font-weight:650}
+  .chips{display:grid;gap:8px}
+  .chips.two{grid-template-columns:1fr 1fr}
+  .chips.three{grid-template-columns:repeat(3,1fr)}
+  .chip{height:auto;min-height:40px;padding:8px 10px;white-space:normal;text-align:center}
+  .sheet{align-items:center}
+  .card{border-radius:var(--r)}
 }
-@media (max-width:420px){
-  .brand span{display:none}
-  .btn{padding:0 10px}
+@media (max-width:460px){
+  .brand span.word{display:none}
+  .btn{padding:0 11px}
+  .long{display:none}
 }
 @media (prefers-reduced-motion:reduce){
-  *{transition:none!important}
+  *{transition:none!important;animation:none!important}
 }
 </style>
 </head>
 <body>
+<a class="skip" href="#panel">Skip to Controls</a>
 <div class="app">
   <header class="bar">
-    <div class="brand">
-      <svg class="mark" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
-      <span>Relight</span>
-    </div>
+    <h1 class="brand" translate="no"><span class="mark" aria-hidden="true"></span><span class="word">Relight</span></h1>
     <div class="actions">
-      <button class="btn ghost" id="btnSample" type="button">Sample</button>
-      <button class="btn" id="btnOpen" type="button">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 9"/></svg>
-        Open photo
-      </button>
-      <button class="btn primary" id="btnExport" type="button">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19.5h14"/></svg>
-        Export
-      </button>
+      <button class="btn ghost" id="btnSample" type="button"><span class="long">Load&nbsp;</span>Sample</button>
+      <button class="btn" id="btnOpen" type="button">Open Photo</button>
+      <button class="btn primary" id="btnExport" type="button">Export</button>
     </div>
   </header>
 
-  <main class="work">
+  <main class="work" id="main">
     <section class="stage" id="stage" aria-label="Photo preview">
       <canvas id="gl" aria-hidden="true"></canvas>
-      <canvas id="ui" tabindex="0" role="application" aria-label="Light placement. Drag to move the light. Arrow keys nudge it. Page Up and Page Down change its height."></canvas>
+      <canvas id="ui" tabindex="0" role="application" aria-label="Light placement. Drag the sun to move the light and the target ring to change where it aims. Arrow keys nudge the light, Alt plus arrow keys nudge the aim, Page Up and Page Down change height. In Split view, the open and close bracket keys move the divider."></canvas>
       <div class="viewseg" role="group" aria-label="Compare">
         <button type="button" data-view="relit" aria-pressed="true">Relit</button>
         <button type="button" data-view="original" aria-pressed="false">Original</button>
         <button type="button" data-view="split" aria-pressed="false">Split</button>
       </div>
-      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button class="toast-act" id="toastAct" type="button" hidden></button></div>
       <div class="veil" id="veil">Drop a photo to relight it</div>
       <div class="glerr" id="glerr" hidden></div>
     </section>
-    <aside class="panel" id="panel" aria-label="Lighting controls"></aside>
+    <aside class="panel" id="panel" tabindex="-1" aria-label="Lighting controls"></aside>
   </main>
 
   <div class="sheet" id="sheet" hidden>
     <div class="card" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
-      <h2 id="sheetTitle">Export relit photo</h2>
-      <div class="pv" id="pv"><span>Rendering at full resolution</span></div>
-      <div class="meta" id="meta"></div>
+      <h2 id="sheetTitle">Export Relit Photo</h2>
+      <div class="pv" id="pv"><span>Rendering at full resolution…</span></div>
+      <div class="meta" id="meta" translate="no"></div>
       <div class="seg" id="fmtSeg" role="group" aria-label="File format">
         <button type="button" data-fmt="png" aria-pressed="true">PNG</button>
         <button type="button" data-fmt="jpeg" aria-pressed="false">JPEG</button>
@@ -204,8 +231,11 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 
 const FONT = '"Avenir Next","Segoe UI Variable","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",sans-serif';
 const TAU = Math.PI * 2;
+const NB = '\u00a0';
 const $ = (s, r = document) => r.querySelector(s);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const nfInt = new Intl.NumberFormat();
+const nfOne = new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 });
 
 /* PURE:BEGIN ------------------------------------------------------------ */
 
@@ -348,11 +378,14 @@ function kelvinToRGB(k) {
   }
   return [r, g, b].map(v => Math.round(clamp(v, 0, 255)));
 }
+/* WCAG relative luminance and contrast, used to pick legible ink on the live accent. */
+function relLum(c) {
+  const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+  return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]);
+}
+const contrast = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 /* PURE:END -------------------------------------------------------------- */
 
-/* ---------------------------------------------------------------------- */
-/* DOM helper                                                              */
-/* ---------------------------------------------------------------------- */
 function h(tag, attrs = {}, ...kids) {
   const el = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
@@ -373,8 +406,10 @@ const nextFrame = () => new Promise(res => {
 /* ---------------------------------------------------------------------- */
 /* State                                                                   */
 /* ---------------------------------------------------------------------- */
+/* lx, ly: light base on the picture plane. tx, ty: aim point. lz: light height.
+   beam: how tightly the light is focused on the aim point. follow: aim moves with the light. */
 const DEFAULTS = {
-  lx: 0.12, ly: 0.10, lz: 0.55,
+  lx: 0.12, ly: 0.10, lz: 0.55, tx: 0.5, ty: 0.5, beam: 0.45, follow: true,
   intensity: 1.6, radius: 2.4, falloff: 1.0,
   mode: 'temp', kelvin: 5200, rgb: [255, 236, 214],
   ambient: 0.26, exposure: 0, shadow: 0.75, soft: 0.3, spec: 0.4,
@@ -389,22 +424,22 @@ let activeLook = 'Top-Left Key Light';
 const state = { src: null, nat: null, name: 'photo', url: null, assets: null };
 
 const LOOKS = [
-  { name: 'Top-Left Key Light', set: { lx: .12, ly: .10, lz: .55, intensity: 1.6, radius: 2.4, falloff: 1.0, mode: 'temp', kelvin: 5200, ambient: .26, exposure: 0, shadow: .75, soft: .30, spec: .40 } },
-  { name: 'Dramatic Rim Light', set: { lx: .90, ly: .30, lz: -.40, intensity: 2.4, radius: 2.4, falloff: 1.2, mode: 'temp', kelvin: 8200, ambient: .12, exposure: .1, shadow: .50, soft: .40, spec: .50 } },
-  { name: 'Side Split Light', set: { lx: -.10, ly: .50, lz: .12, intensity: 2.1, radius: 2.0, falloff: 1.6, mode: 'temp', kelvin: 5600, ambient: .05, exposure: 0, shadow: .85, soft: .22, spec: .30 } },
-  { name: 'Soft Front Fill', set: { lx: .50, ly: .40, lz: 1.0, intensity: 1.1, radius: 3.4, falloff: .6, mode: 'temp', kelvin: 5600, ambient: .50, exposure: 0, shadow: .20, soft: .60, spec: .15 } }
+  { name: 'Top-Left Key Light', set: { lx: .12, ly: .10, lz: .55, tx: .5, ty: .5, beam: .45, intensity: 1.6, radius: 2.4, falloff: 1.0, mode: 'temp', kelvin: 5200, ambient: .26, exposure: 0, shadow: .75, soft: .30, spec: .40 } },
+  { name: 'Dramatic Rim Light', set: { lx: .90, ly: .30, lz: -.40, tx: .5, ty: .5, beam: .20, intensity: 2.4, radius: 2.4, falloff: 1.2, mode: 'temp', kelvin: 8200, ambient: .12, exposure: .1, shadow: .50, soft: .40, spec: .50 } },
+  { name: 'Side Split Light', set: { lx: -.10, ly: .50, lz: .12, tx: .5, ty: .5, beam: .35, intensity: 2.1, radius: 2.0, falloff: 1.6, mode: 'temp', kelvin: 5600, ambient: .05, exposure: 0, shadow: .85, soft: .22, spec: .30 } },
+  { name: 'Soft Front Fill', set: { lx: .50, ly: .40, lz: 1.0, tx: .5, ty: .5, beam: 0, intensity: 1.1, radius: 3.4, falloff: .6, mode: 'temp', kelvin: 5600, ambient: .50, exposure: 0, shadow: .20, soft: .60, spec: .15 } }
 ];
 const DIRS = [
-  { name: 'Left', set: { lx: .04, ly: .50, lz: .35 } },
-  { name: 'Right', set: { lx: .96, ly: .50, lz: .35 } },
-  { name: 'Top', set: { lx: .50, ly: .05, lz: .40 } },
-  { name: 'Bottom', set: { lx: .50, ly: .95, lz: .35 } },
-  { name: 'Front', set: { lx: .50, ly: .50, lz: .95 } },
-  { name: 'Backlight', set: { lx: .50, ly: .42, lz: -.45 } }
+  { name: 'Left', set: { lx: .04, ly: .50, lz: .35, tx: .5, ty: .5 } },
+  { name: 'Right', set: { lx: .96, ly: .50, lz: .35, tx: .5, ty: .5 } },
+  { name: 'Top', set: { lx: .50, ly: .05, lz: .40, tx: .5, ty: .5 } },
+  { name: 'Bottom', set: { lx: .50, ly: .95, lz: .35, tx: .5, ty: .5 } },
+  { name: 'Front', set: { lx: .50, ly: .50, lz: .95, tx: .5, ty: .5 } },
+  { name: 'Backlight', set: { lx: .50, ly: .42, lz: -.45, tx: .5, ty: .5 } }
 ];
 
 const lightRGB = () => (P.mode === 'temp' ? kelvinToRGB(P.kelvin) : P.rgb);
-/* UI accent follows the light: normalise brightness so it stays legible on the dark panel. */
+/* The UI accent follows the light: normalise brightness so it stays legible on the dark panel. */
 function gelColor() {
   const c = lightRGB(), m = Math.max(c[0], c[1], c[2], 1);
   let r = c[0] * 255 / m, g = c[1] * 255 / m, b = c[2] * 255 / m;
@@ -440,6 +475,8 @@ uniform sampler2D u_grad;
 uniform sampler2D u_hmap;
 uniform float u_aspect;
 uniform vec3  u_lightPos;
+uniform vec3  u_aim;
+uniform float u_beam;
 uniform vec3  u_color;
 uniform float u_radius;
 uniform float u_falloff;
@@ -505,6 +542,15 @@ void main(){
   float t = clamp(d / u_radius, 0.0, 1.0);
   float att = pow(1.0 - t * t * (3.0 - 2.0 * t), u_falloff);
 
+  /* beam: a cone from the light toward the aim point */
+  float spot = 1.0;
+  if (u_beam > 0.01) {
+    vec3 ad = normalize(u_aim - u_lightPos + vec3(0.0, 0.0, 0.0001));
+    float cs = dot(normalize(P - u_lightPos + vec3(0.00001)), ad);
+    float cone = 1.6 * pow(1.0 - u_beam, 1.5) + 0.12;
+    spot = 1.0 - smoothstep(cone * 0.5, cone, acos(clamp(cs, -1.0, 1.0)));
+  }
+
   float ndl = dot(N, Ld);
   float diff = clamp((ndl + WRAP) / (1.0 + WRAP), 0.0, 1.0);
 
@@ -529,10 +575,10 @@ void main(){
   /* rim light for lights placed behind the subject: edges of the height field facing the light */
   float edge = clamp((1.0 - N.z) * 2.6, 0.0, 1.0);
   vec2 nxy = N.xy / max(length(N.xy), 0.001);
-  vec2 off = u_lightPos.xy - vec2(0.5, 0.5 * u_aspect);
+  vec2 off = u_lightPos.xy - u_aim.xy;
   float m = clamp(length(off) / 0.3, 0.0, 1.0);
   float facing = mix(1.0, smoothstep(-0.35, 0.85, dot(nxy, normalize(off + vec2(0.0001)))), m);
-  float rim = edge * facing * (back * 1.7 + 0.08) * att;
+  float rim = edge * facing * (back * 1.7 + 0.08) * att * spot;
 
   float gd = length(P.xy - u_lightPos.xy) / (u_radius * 0.4);
   float glow = back * pow(clamp(1.0 - gd, 0.0, 1.0), 2.0) * 0.12;
@@ -543,13 +589,13 @@ void main(){
   vec3 base = min(src / pow(sc, u_flatten), vec3(1.5));
   vec3 alb = pow(base, vec3(2.2));
 
-  float lit = diff * att * shade * front;
+  float lit = diff * att * shade * front * spot;
   vec3 col = alb * (vec3(u_ambient) + u_color * (lit + rim + glow));
 
   if (front > 0.01 && u_spec > 0.002) {
     vec3 Hh = normalize(Ld + vec3(0.0, 0.0, 1.0));
     float sp = pow(max(dot(N, Hh), 0.0), 36.0) * step(0.0, ndl);
-    col += u_color * (sp * u_spec * 0.6 * att * shade * front);
+    col += u_color * (sp * u_spec * 0.6 * att * shade * front * spot);
   }
 
   col *= exp2(u_exposure);
@@ -560,9 +606,9 @@ void main(){
   gl_FragColor = vec4(outc, 1.0);
 }`;
 
-const UNIFORMS = ['u_img', 'u_grad', 'u_hmap', 'u_aspect', 'u_lightPos', 'u_color', 'u_radius', 'u_falloff', 'u_ambient',
-  'u_exposure', 'u_shadow', 'u_soft', 'u_spec', 'u_depth', 'u_relief', 'u_detail', 'u_flatten', 'u_sign', 'u_meanLum',
-  'u_view', 'u_split', 'u_debug'];
+const UNIFORMS = ['u_img', 'u_grad', 'u_hmap', 'u_aspect', 'u_lightPos', 'u_aim', 'u_beam', 'u_color', 'u_radius', 'u_falloff',
+  'u_ambient', 'u_exposure', 'u_shadow', 'u_soft', 'u_spec', 'u_depth', 'u_relief', 'u_detail', 'u_flatten', 'u_sign',
+  'u_meanLum', 'u_view', 'u_split', 'u_debug'];
 
 function compile(gl, type, src) {
   const s = gl.createShader(type);
@@ -641,6 +687,8 @@ function draw(o = {}) {
   const lin = lightRGB().map(c => Math.pow(c / 255, 2.2) * P.intensity);
   gl.uniform1f(L.u_aspect, asp);
   gl.uniform3f(L.u_lightPos, P.lx, P.ly * asp, P.lz);
+  gl.uniform3f(L.u_aim, P.tx, P.ty * asp, 0);
+  gl.uniform1f(L.u_beam, P.beam);
   gl.uniform3f(L.u_color, lin[0], lin[1], lin[2]);
   gl.uniform1f(L.u_radius, P.radius);
   gl.uniform1f(L.u_falloff, P.falloff);
@@ -688,7 +736,7 @@ const loadImage = url => new Promise((res, rej) => {
 });
 
 async function setSource(src, w, hh, name) {
-  toast('Estimating depth', 0);
+  toast('Estimating Depth…', 0);
   await nextFrame();
   try {
     const pvD = fitDims(w, hh, 1600);
@@ -743,22 +791,22 @@ async function decodeFile(file) {
 async function loadFile(file) {
   if (!file) return;
   if (file.type && !/^image\//.test(file.type)) { toast('That file isn’t an image. Choose a JPEG or PNG.'); return; }
-  toast('Reading photo', 0);
+  toast('Reading Photo…', 0);
   let dec;
   try {
     dec = await decodeFile(file);
   } catch (err) {
-    toast('This browser couldn’t decode that file (' + (err.detail || 'unknown reason').slice(0, 140) + ').', 8000);
+    toast('This browser couldn’t decode that file (' + (err.detail || 'unknown reason').slice(0, 140) + '). Try saving it again as a JPEG or PNG.', 9000);
     return;
   }
   try {
     await setSource(dec.src, dec.w, dec.h, file.name.replace(/\.[^.]+$/, '') || 'photo');
     if (state.url) URL.revokeObjectURL(state.url);
     state.url = dec.url;
-    toast(`Opened ${dec.w} × ${dec.h} px`);
+    toast(`Opened ${nfInt.format(dec.w)}${NB}×${NB}${nfInt.format(dec.h)}${NB}px`);
   } catch (err) {
     if (dec.url) URL.revokeObjectURL(dec.url);
-    toast('The photo opened but couldn’t be processed: ' + String((err && err.message) || err).slice(0, 160), 8000);
+    toast('The photo opened but couldn’t be processed: ' + String((err && err.message) || err).slice(0, 160) + '. Try a smaller photo.', 9000);
   }
 }
 
@@ -836,9 +884,11 @@ const loadSample = () => setSource(makeSample(), 1500, 1000, 'still-life');
 const stage = $('#stage'), ui = $('#ui'), uctx = ui.getContext('2d');
 let dpr = 1, SW = 1, SH = 1;
 const rect = { x: 0, y: 0, w: 1, h: 1 };
+let uiRect = { left: 0, top: 0 };
 
 function layout() {
   const r = stage.getBoundingClientRect();
+  uiRect = { left: r.left, top: r.top };
   SW = Math.max(1, r.width); SH = Math.max(1, r.height);
   dpr = Math.min(window.devicePixelRatio || 1, 2);
   ui.width = Math.round(SW * dpr); ui.height = Math.round(SH * dpr);
@@ -870,8 +920,8 @@ function pill(g, text, cx, cy) {
   g.font = '500 11.5px ' + FONT;
   const tw = g.measureText(text).width, pw = tw + 16, ph = 22;
   const px = clamp(cx - pw / 2, 6, SW - pw - 6), py = clamp(cy - ph / 2, 6, SH - ph - 6);
-  g.fillStyle = 'rgba(22,24,26,.86)'; roundRectPath(g, px, py, pw, ph, 11); g.fill();
-  g.strokeStyle = 'rgba(255,255,255,.14)'; g.lineWidth = 1; g.stroke();
+  g.fillStyle = 'rgba(22,24,26,.88)'; roundRectPath(g, px, py, pw, ph, 7); g.fill();
+  g.strokeStyle = 'rgba(255,255,255,.16)'; g.lineWidth = 1; g.stroke();
   g.fillStyle = '#ebe8e2'; g.textBaseline = 'middle'; g.textAlign = 'left';
   g.fillText(text, px + 8, py + ph / 2 + 0.5);
 }
@@ -879,14 +929,15 @@ function tag(g, text, x, y, align) {
   g.font = '500 11.5px ' + FONT;
   const tw = g.measureText(text).width, pw = tw + 16, ph = 22;
   const px = align === 'right' ? x - pw : x;
-  g.fillStyle = 'rgba(22,24,26,.78)'; roundRectPath(g, px, y, pw, ph, 7); g.fill();
+  g.fillStyle = 'rgba(22,24,26,.8)'; roundRectPath(g, px, y, pw, ph, 7); g.fill();
   g.fillStyle = '#ebe8e2'; g.textBaseline = 'middle'; g.textAlign = 'left';
   g.fillText(text, px + 8, y + ph / 2 + 0.5);
 }
 
+/* Direction and elevation of the light as seen from the aim point. Recomputed on every draw. */
 function lightAngles() {
   const asp = state.nat ? state.nat.h / state.nat.w : 1;
-  const dx = P.lx - 0.5, dy = (P.ly - 0.5) * asp, hd = Math.hypot(dx, dy);
+  const dx = P.lx - P.tx, dy = (P.ly - P.ty) * asp, hd = Math.hypot(dx, dy);
   const el = Math.atan2(P.lz, hd) * 180 / Math.PI;
   const az = hd < 0.012 ? null : (Math.atan2(dx, -dy) * 180 / Math.PI + 360) % 360;
   return { az, el };
@@ -917,16 +968,16 @@ function drawOverlay() {
   } else if (V === 'original') {
     tag(g, 'Original', rect.x + 10, rect.y + 10, 'left');
   } else if (preview === 1) {
-    tag(g, 'Surface normals', rect.x + 10, rect.y + 10, 'left');
+    tag(g, 'Surface Normals', rect.x + 10, rect.y + 10, 'left');
   } else if (preview === 2) {
-    tag(g, 'Depth estimate', rect.x + 10, rect.y + 10, 'left');
+    tag(g, 'Depth Estimate', rect.x + 10, rect.y + 10, 'left');
   }
 
   g.save();
   g.globalAlpha = V === 'original' ? 0.4 : 1;
   const base = toPx(P.lx, P.ly), k = stemK();
   const lamp = { x: base.x, y: base.y - P.lz * k };
-  const ctr = { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 };
+  const tg = toPx(P.tx, P.ty);
   const behind = P.lz < -0.2;
 
   // reach of the light on the picture plane
@@ -934,26 +985,32 @@ function drawOverlay() {
   g.setLineDash([2, 7]); g.lineWidth = 1.5; g.strokeStyle = rgba(0.38);
   g.beginPath(); g.arc(base.x, base.y, Math.min(Rh, 6000), 0, TAU); g.stroke();
 
-  // vector toward the subject
-  const dx = ctr.x - base.x, dy = ctr.y - base.y, len = Math.hypot(dx, dy);
-  if (len > 24) {
+  // vector from the light to the aim point
+  const dx = tg.x - base.x, dy = tg.y - base.y, len = Math.hypot(dx, dy);
+  if (len > 26) {
     const ux = dx / len, uy = dy / len;
-    const gr = g.createLinearGradient(base.x, base.y, ctr.x, ctr.y);
-    gr.addColorStop(0, col); gr.addColorStop(1, 'rgba(255,255,255,.7)');
+    const gr = g.createLinearGradient(base.x, base.y, tg.x, tg.y);
+    gr.addColorStop(0, col); gr.addColorStop(1, 'rgba(255,255,255,.75)');
     g.strokeStyle = gr; g.lineWidth = 2; g.setLineDash(behind ? [2, 6] : [9, 6]); g.lineCap = 'round';
-    g.beginPath(); g.moveTo(base.x + ux * 12, base.y + uy * 12); g.lineTo(ctr.x - ux * 14, ctr.y - uy * 14); g.stroke();
+    g.beginPath(); g.moveTo(base.x + ux * 12, base.y + uy * 12); g.lineTo(tg.x - ux * 16, tg.y - uy * 16); g.stroke();
     g.setLineDash([]);
-    const tx = ctr.x - ux * 10, ty = ctr.y - uy * 10;
-    g.fillStyle = 'rgba(255,255,255,.85)'; g.beginPath();
+    const tx = tg.x - ux * 12, ty = tg.y - uy * 12;
+    g.fillStyle = 'rgba(255,255,255,.9)'; g.beginPath();
     g.moveTo(tx, ty); g.lineTo(tx - ux * 9 - uy * 5, ty - uy * 9 + ux * 5); g.lineTo(tx - ux * 9 + uy * 5, ty - uy * 9 - ux * 5);
     g.closePath(); g.fill();
   }
   g.setLineDash([]); g.lineCap = 'butt';
-  // target reticle
-  g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = 1.5;
-  g.beginPath(); g.arc(ctr.x, ctr.y, 6, 0, TAU); g.stroke();
-  g.beginPath(); g.moveTo(ctr.x - 11, ctr.y); g.lineTo(ctr.x - 8, ctr.y); g.moveTo(ctr.x + 8, ctr.y); g.lineTo(ctr.x + 11, ctr.y);
-  g.moveTo(ctr.x, ctr.y - 11); g.lineTo(ctr.x, ctr.y - 8); g.moveTo(ctr.x, ctr.y + 8); g.lineTo(ctr.x, ctr.y + 11); g.stroke();
+
+  // aim handle: ring and crosshair, draggable
+  g.strokeStyle = 'rgba(0,0,0,.5)'; g.lineWidth = 4;
+  g.beginPath(); g.arc(tg.x, tg.y, 9, 0, TAU); g.stroke();
+  g.strokeStyle = 'rgba(255,255,255,.92)'; g.lineWidth = 1.75;
+  g.beginPath(); g.arc(tg.x, tg.y, 9, 0, TAU); g.stroke();
+  g.beginPath();
+  g.moveTo(tg.x - 15, tg.y); g.lineTo(tg.x - 11, tg.y); g.moveTo(tg.x + 11, tg.y); g.lineTo(tg.x + 15, tg.y);
+  g.moveTo(tg.x, tg.y - 15); g.lineTo(tg.x, tg.y - 11); g.moveTo(tg.x, tg.y + 11); g.lineTo(tg.x, tg.y + 15);
+  g.stroke();
+  g.fillStyle = col; g.beginPath(); g.arc(tg.x, tg.y, 2.5, 0, TAU); g.fill();
 
   // stand: ground marker, stem, lamp
   g.fillStyle = 'rgba(0,0,0,.35)';
@@ -981,7 +1038,7 @@ function drawOverlay() {
 
   // readout
   const an = lightAngles();
-  const dirTxt = an.az == null ? 'centred' : Math.round(an.az) + '°';
+  const dirTxt = an.az == null ? 'centered' : Math.round(an.az) + '°';
   const text = P.lz < -0.05
     ? `Direction ${dirTxt}, behind subject`
     : `Direction ${dirTxt}, elevation ${Math.round(an.el)}°`;
@@ -989,9 +1046,9 @@ function drawOverlay() {
     if (len > 110) {
       let nx = -dy / len, ny = dx / len;
       if (ny > 0) { nx = -nx; ny = -ny; }
-      pill(g, text, (base.x + ctr.x) / 2 + nx * 18, (base.y + ctr.y) / 2 + ny * 18);
+      pill(g, text, (base.x + tg.x) / 2 + nx * 18, (base.y + tg.y) / 2 + ny * 18);
     } else {
-      pill(g, text, ctr.x, ctr.y + 30);
+      pill(g, text, tg.x, tg.y + 30);
     }
   }
 }
@@ -1009,13 +1066,15 @@ function frame() {
   drawOverlay();
   syncControls();
 }
-function manual() { activeLook = null; syncLooks(); invalidate(); }
+let tweenId = 0;
+const cancelTween = () => { tweenId++; };
+function manual() { cancelTween(); activeLook = null; syncLooks(); invalidate(); }
 
 /* ---------------------------------------------------------------------- */
 /* Pointer + keyboard on the stage                                         */
 /* ---------------------------------------------------------------------- */
 let drag = null;
-const ptOf = e => { const r = ui.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+const ptOf = e => ({ x: e.clientX - uiRect.left, y: e.clientY - uiRect.top });
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const rig = () => {
   const base = toPx(P.lx, P.ly);
@@ -1023,29 +1082,58 @@ const rig = () => {
 };
 const splitX = () => rect.x + split * rect.w;
 
-function setLightPx(x, y) {
+function nearestHandle(p) {
+  const { base, lamp } = rig(), tg = toPx(P.tx, P.ty);
+  const dl = Math.min(dist(p, base), dist(p, lamp)), dt = dist(p, tg);
+  return dt < dl ? { kind: 'aim', d: dt } : { kind: 'light', d: dl };
+}
+
+/* Move the light base to a pixel position. With "Aim Moves With Light" on, the aim point shifts by the same
+   amount, so the whole rig slides together and the lighting is recomputed from the new positions. */
+function moveLamp(x, y) {
   const stem = P.lz * stemK();
-  x = clamp(x, 10, SW - 10);
-  y = clamp(y, 10 + Math.max(0, stem), SH - 10 + Math.min(0, stem));
-  P.lx = (x - rect.x) / rect.w;
-  P.ly = (y - rect.y) / rect.h;
+  const loX = 10, hiX = SW - 10, loY = 10 + Math.max(0, stem), hiY = SH - 10 + Math.min(0, stem);
+  const cur = toPx(P.lx, P.ly);
+  let dx = clamp(x, loX, hiX) - cur.x, dy = clamp(y, loY, hiY) - cur.y;
+  if (P.follow) {
+    const t = toPx(P.tx, P.ty);
+    dx = clamp(dx, Math.max(loX - cur.x, 10 - t.x), Math.min(hiX - cur.x, SW - 10 - t.x));
+    dy = clamp(dy, Math.max(loY - cur.y, 10 - t.y), Math.min(hiY - cur.y, SH - 10 - t.y));
+    P.tx += dx / rect.w; P.ty += dy / rect.h;
+  }
+  P.lx += dx / rect.w; P.ly += dy / rect.h;
+  manual();
+}
+function moveAim(x, y) {
+  x = clamp(x, 10, SW - 10); y = clamp(y, 10, SH - 10);
+  P.tx = (x - rect.x) / rect.w; P.ty = (y - rect.y) / rect.h;
   manual();
 }
 
+ui.addEventListener('pointerenter', () => { uiRect = stage.getBoundingClientRect(); });
 ui.addEventListener('pointerdown', e => {
   if (!state.assets) return;
+  uiRect = stage.getBoundingClientRect();
   ui.setPointerCapture(e.pointerId);
   ui.focus({ preventScroll: true });
-  const p = ptOf(e), { base, lamp } = rig();
-  const near = Math.min(dist(p, base), dist(p, lamp)) < 34;
+  const p = ptOf(e), hit = nearestHandle(p), near = hit.d < 34;
   if (V === 'split' && !near && Math.abs(p.x - splitX()) < 22 && p.y > rect.y - 14 && p.y < rect.y + rect.h + 14) {
     drag = { type: 'split' };
     split = clamp((p.x - rect.x) / rect.w, 0.02, 0.98); invalidate();
+    document.body.classList.add('dragging');
     return;
   }
   if (V === 'original') setView('relit');
-  drag = { type: 'light', ox: near ? base.x - p.x : 0, oy: near ? base.y - p.y : 0 };
-  setLightPx(p.x + drag.ox, p.y + drag.oy);
+  if (near && hit.kind === 'aim') {
+    const tg = toPx(P.tx, P.ty);
+    drag = { type: 'aim', ox: tg.x - p.x, oy: tg.y - p.y };
+    moveAim(p.x + drag.ox, p.y + drag.oy);
+  } else {
+    const { base } = rig();
+    drag = { type: 'light', ox: near ? base.x - p.x : 0, oy: near ? base.y - p.y : 0 };
+    moveLamp(p.x + drag.ox, p.y + drag.oy);
+  }
+  document.body.classList.add('dragging');
   ui.style.cursor = 'grabbing';
   e.preventDefault();
 });
@@ -1053,16 +1141,16 @@ ui.addEventListener('pointermove', e => {
   const p = ptOf(e);
   if (drag) {
     if (drag.type === 'split') { split = clamp((p.x - rect.x) / rect.w, 0.02, 0.98); invalidate(); }
-    else setLightPx(p.x + drag.ox, p.y + drag.oy);
+    else if (drag.type === 'aim') moveAim(p.x + drag.ox, p.y + drag.oy);
+    else moveLamp(p.x + drag.ox, p.y + drag.oy);
     return;
   }
   if (!state.assets) return;
-  const { base, lamp } = rig();
-  if (Math.min(dist(p, base), dist(p, lamp)) < 30) ui.style.cursor = 'grab';
+  if (nearestHandle(p).d < 30) ui.style.cursor = 'grab';
   else if (V === 'split' && Math.abs(p.x - splitX()) < 14) ui.style.cursor = 'ew-resize';
   else ui.style.cursor = 'crosshair';
 });
-const endDrag = () => { drag = null; ui.style.cursor = 'crosshair'; };
+const endDrag = () => { drag = null; document.body.classList.remove('dragging'); ui.style.cursor = 'crosshair'; };
 ui.addEventListener('pointerup', endDrag);
 ui.addEventListener('pointercancel', endDrag);
 ui.addEventListener('wheel', e => {
@@ -1073,22 +1161,32 @@ ui.addEventListener('wheel', e => {
   manual();
 }, { passive: false });
 ui.addEventListener('keydown', e => {
-  const st = e.shiftKey ? 0.05 : 0.01;
-  let used = true;
-  switch (e.key) {
-    case 'ArrowLeft': P.lx -= st; break;
-    case 'ArrowRight': P.lx += st; break;
-    case 'ArrowUp': P.ly -= st; break;
-    case 'ArrowDown': P.ly += st; break;
-    case 'PageUp': P.lz += st * 3; break;
-    case 'PageDown': P.lz -= st * 3; break;
-    default: used = false;
+  if (V === 'split' && (e.key === '[' || e.key === ']')) {
+    e.preventDefault();
+    split = clamp(split + (e.key === ']' ? 0.02 : -0.02), 0.02, 0.98);
+    invalidate();
+    return;
   }
-  if (!used) return;
-  e.preventDefault();
-  if (V === 'original') setView('relit');
-  P.lx = clamp(P.lx, -0.4, 1.4); P.ly = clamp(P.ly, -0.4, 1.4); P.lz = clamp(P.lz, -0.8, 1.5);
-  manual();
+  const st = e.shiftKey ? 0.05 : 0.01;
+  const dirs = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+  if (dirs[e.key]) {
+    e.preventDefault();
+    if (V === 'original') setView('relit');
+    const [sx, sy] = dirs[e.key];
+    if (e.altKey) {
+      const tg = toPx(P.tx, P.ty);
+      moveAim(tg.x + sx * st * rect.w, tg.y + sy * st * rect.h);
+    } else {
+      const { base } = rig();
+      moveLamp(base.x + sx * st * rect.w, base.y + sy * st * rect.h);
+    }
+    return;
+  }
+  if (e.key === 'PageUp' || e.key === 'PageDown') {
+    e.preventDefault();
+    P.lz = clamp(P.lz + (e.key === 'PageUp' ? 1 : -1) * st * 3, -0.8, 1.5);
+    manual();
+  }
 });
 
 /* ---------------------------------------------------------------------- */
@@ -1096,49 +1194,124 @@ ui.addEventListener('keydown', e => {
 /* ---------------------------------------------------------------------- */
 const panel = $('#panel');
 const sliderRefs = [];
+const switchRefs = [];
 const pct = v => Math.round(v * 100) + '%';
 
 const TABS = [
   { id: 'light', label: 'Light', controls: [
     { key: 'intensity', label: 'Intensity', min: 0, max: 4, step: 0.01, fmt: v => v.toFixed(2) },
-    { key: 'lz', label: 'Height', min: -0.8, max: 1.5, step: 0.01, fmt: v => v < -0.05 ? pct(-v) + ' behind' : pct(v) },
+    { key: 'lz', label: 'Height', min: -0.8, max: 1.5, step: 0.01, fmt: v => v < -0.05 ? pct(-v) + NB + 'behind' : pct(v) },
     { key: 'radius', label: 'Radius', min: 0.4, max: 4, step: 0.05, fmt: pct },
-    { key: 'falloff', label: 'Falloff', min: 0.3, max: 4, step: 0.05, fmt: v => v.toFixed(2) + (v < 0.9 ? ', broad' : v < 1.8 ? ', even' : ', tight') }
+    { key: 'falloff', label: 'Falloff', min: 0.3, max: 4, step: 0.05, fmt: v => v.toFixed(2) + (v < 0.9 ? ', broad' : v < 1.8 ? ', even' : ', tight') },
+    { key: 'beam', label: 'Beam Focus', min: 0, max: 1, step: 0.01, fmt: v => v < 0.01 ? 'Off' : pct(v) }
   ] },
   { id: 'shadow', label: 'Shadow', controls: [
-    { key: 'ambient', label: 'Ambient fill', min: 0, max: 1.2, step: 0.01, fmt: pct },
-    { key: 'exposure', label: 'Base exposure', min: -2, max: 2, step: 0.05, fmt: v => (v < 0 ? '−' : '+') + Math.abs(v).toFixed(2) + ' EV' },
-    { key: 'shadow', label: 'Cast shadow', min: 0, max: 1, step: 0.01, fmt: pct },
-    { key: 'soft', label: 'Shadow softness', min: 0.02, max: 1, step: 0.01, fmt: pct },
+    { key: 'ambient', label: 'Ambient Fill', min: 0, max: 1.2, step: 0.01, fmt: pct },
+    { key: 'exposure', label: 'Base Exposure', min: -2, max: 2, step: 0.05, fmt: v => (v < 0 ? '-' : '+') + Math.abs(v).toFixed(2) + NB + 'EV' },
+    { key: 'shadow', label: 'Cast Shadow', min: 0, max: 1, step: 0.01, fmt: pct },
+    { key: 'soft', label: 'Shadow Softness', min: 0.02, max: 1, step: 0.01, fmt: pct },
     { key: 'spec', label: 'Highlight', min: 0, max: 1.5, step: 0.01, fmt: pct }
   ] },
   { id: 'depth', label: 'Depth', controls: [
-    { key: 'depth', label: 'Depth strength', min: 0, max: 3, step: 0.05, fmt: v => v.toFixed(2) },
-    { key: 'detail', label: 'Surface detail', min: 0, max: 1.5, step: 0.01, fmt: pct },
-    { key: 'flatten', label: 'Flatten existing light', min: 0, max: 1, step: 0.01, fmt: pct }
+    { key: 'depth', label: 'Depth Strength', min: 0, max: 3, step: 0.05, fmt: v => v.toFixed(2) },
+    { key: 'detail', label: 'Surface Detail', min: 0, max: 1.5, step: 0.01, fmt: pct },
+    { key: 'flatten', label: 'Flatten Existing Light', min: 0, max: 1, step: 0.01, fmt: pct }
   ] }
 ];
 
+/* Custom slider. A touch only moves it if the touch starts on the handle and then travels sideways,
+   so scrolling the page with a finger that passes over a slider never changes a value. A mouse can
+   click or drag anywhere on the rail. Keyboard: arrows, Page Up/Down, Home, End. */
 function makeSlider(def) {
   const id = 's-' + def.key + (def.idx != null ? def.idx : '');
-  const out = h('output', { for: id });
-  const inp = h('input', { type: 'range', id, min: def.min, max: def.max, step: def.step });
-  if (def.track) {
-    inp.style.setProperty('--tb', def.track); inp.style.setProperty('--tb2', def.track); inp.style.setProperty('--prog', 'transparent');
-  }
+  const span = def.max - def.min;
   const read = () => (def.idx != null ? P[def.key][def.idx] : P[def.key]);
-  inp.addEventListener('input', () => {
-    const v = parseFloat(inp.value);
-    if (def.idx != null) P[def.key][def.idx] = v; else P[def.key] = v;
-    if (def.onInput) def.onInput();
+  const write = v => { if (def.idx != null) P[def.key][def.idx] = v; else P[def.key] = v; };
+  const out = h('output', { id: id + '-o', translate: 'no' });
+  const lbl = h('span', { class: 'lbl', id: id + '-l' }, def.label);
+  const el = h('div', {
+    class: 'sl' + (def.track ? ' plain' : ''), id, role: 'slider', tabindex: '0',
+    'aria-labelledby': id + '-l', 'aria-valuemin': String(def.min), 'aria-valuemax': String(def.max)
+  }, h('span', { class: 'rail' }), h('span', { class: 'fill' }), h('span', { class: 'knob' }));
+  if (def.track) el.style.setProperty('--tb', def.track);
+
+  const snap = v => {
+    v = clamp(v, def.min, def.max);
+    const n = Math.round((v - def.min) / def.step);
+    return +Math.min(def.max, def.min + n * def.step).toFixed(4);
+  };
+  const commit = v => {
+    const s = snap(v);
+    if (s === read()) return;
+    write(s);
     manual();
+  };
+  const geom = () => { const r = el.getBoundingClientRect(); return { left: r.left, w: Math.max(1, r.width - 22) }; };
+  const valueAt = (x, gm) => def.min + clamp((x - gm.left - 11) / gm.w, 0, 1) * span;
+
+  let g = null;
+  el.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const gm = geom();
+    const off = e.clientX - (gm.left + 11 + ((read() - def.min) / span) * gm.w);
+    if (e.pointerType !== 'mouse') {
+      if (Math.abs(off) > 30) return;                       // touch must begin on the handle
+      g = { id: e.pointerId, x0: e.clientX, y0: e.clientY, off, active: false };
+      return;
+    }
+    const grab = Math.abs(off) <= 12 ? off : 0;
+    g = { id: e.pointerId, off: grab, active: true };
+    el.setPointerCapture(e.pointerId);
+    el.classList.add('drag');
+    el.focus({ preventScroll: true });
+    commit(valueAt(e.clientX - grab, gm));
+    e.preventDefault();
   });
-  sliderRefs.push({ def, inp, out, read });
-  return h('div', { class: 'ctl' }, h('div', { class: 'top' }, h('label', { for: id }, def.label), out), inp);
+  el.addEventListener('pointermove', e => {
+    if (!g || e.pointerId !== g.id) return;
+    if (!g.active) {
+      const dx = Math.abs(e.clientX - g.x0), dy = Math.abs(e.clientY - g.y0);
+      if (dx < 6 || dx < dy * 1.2) return;                  // wait for clear sideways intent
+      g.active = true;
+      el.setPointerCapture(e.pointerId);
+      el.classList.add('drag');
+      el.focus({ preventScroll: true });
+    }
+    commit(valueAt(e.clientX - g.off, geom()));
+  });
+  const end = e => { if (g && e.pointerId === g.id) { g = null; el.classList.remove('drag'); } };
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
+  el.addEventListener('lostpointercapture', end);
+  el.addEventListener('keydown', e => {
+    const big = def.step * 10;
+    let v = read(), used = true;
+    switch (e.key) {
+      case 'ArrowLeft': case 'ArrowDown': v -= e.shiftKey ? big : def.step; break;
+      case 'ArrowRight': case 'ArrowUp': v += e.shiftKey ? big : def.step; break;
+      case 'PageDown': v -= big; break;
+      case 'PageUp': v += big; break;
+      case 'Home': v = def.min; break;
+      case 'End': v = def.max; break;
+      default: used = false;
+    }
+    if (used) { e.preventDefault(); commit(v); }
+  });
+
+  sliderRefs.push({ def, el, out, read });
+  return h('div', { class: 'ctl' }, h('div', { class: 'top' }, lbl, out), el);
+}
+
+function makeSwitch(label, hint, get, set) {
+  const id = 'sw-' + label.toLowerCase().replace(/\W+/g, '-');
+  const btn = h('button', { class: 'switch', type: 'button', role: 'switch', id, 'aria-checked': 'false', 'aria-labelledby': id + '-l' }, h('span', { class: 'sw-knob' }));
+  btn.addEventListener('click', () => { set(!get()); manual(); });
+  switchRefs.push({ btn, get });
+  return h('div', { class: 'row' }, h('div', { class: 'txt' }, h('span', { id: id + '-l' }, label), hint ? h('small', {}, hint) : null), btn);
 }
 
 const swatchNow = h('span', { class: 'nowchip' });
-const swatchOut = h('output', {});
+const swatchOut = h('output', { translate: 'no' });
 const colorPanes = {};
 const modeBtns = {};
 
@@ -1149,14 +1322,14 @@ function setMode(m) {
 }
 
 function buildColorBlock() {
-  const seg = h('div', { class: 'seg', role: 'group', 'aria-label': 'Color mode' });
+  const seg = h('div', { class: 'seg', role: 'group', 'aria-label': 'Color Mode' });
   [['temp', 'Temperature'], ['rgb', 'RGB']].forEach(([m, label]) => {
     const b = h('button', { type: 'button', 'aria-pressed': 'false' }, label);
     b.addEventListener('click', () => setMode(m));
     modeBtns[m] = b; seg.append(b);
   });
   const tempTrack = 'linear-gradient(90deg,#ff8a1f 0%,#ffc27d 25%,#fff4e6 48%,#d7e5ff 72%,#93b5ff 100%)';
-  colorPanes.temp = h('div', {}, makeSlider({ key: 'kelvin', label: 'Temperature', min: 1800, max: 10000, step: 50, fmt: v => Math.round(v) + ' K', track: tempTrack }));
+  colorPanes.temp = h('div', {}, makeSlider({ key: 'kelvin', label: 'Temperature', min: 1800, max: 10000, step: 50, fmt: v => Math.round(v) + NB + 'K', track: tempTrack }));
   colorPanes.rgb = h('div', {},
     makeSlider({ key: 'rgb', idx: 0, label: 'Red', min: 0, max: 255, step: 1, fmt: v => String(Math.round(v)), track: 'linear-gradient(90deg,#000,#ff2a2a)' }),
     makeSlider({ key: 'rgb', idx: 1, label: 'Green', min: 0, max: 255, step: 1, fmt: v => String(Math.round(v)), track: 'linear-gradient(90deg,#000,#2aff5a)' }),
@@ -1165,33 +1338,36 @@ function buildColorBlock() {
     ['Tungsten', '#ffb26b', () => { P.mode = 'temp'; P.kelvin = 3200; }],
     ['Daylight', '#fff1e0', () => { P.mode = 'temp'; P.kelvin = 5600; }],
     ['Overcast', '#cfe0ff', () => { P.mode = 'temp'; P.kelvin = 7800; }],
-    ['Amber gel', '#ff9f1c', () => { P.mode = 'rgb'; P.rgb = [255, 159, 28]; }],
-    ['Teal gel', '#2ec4b6', () => { P.mode = 'rgb'; P.rgb = [46, 196, 182]; }],
-    ['Magenta gel', '#ec4899', () => { P.mode = 'rgb'; P.rgb = [236, 72, 153]; }]
+    ['Amber Gel', '#ff9f1c', () => { P.mode = 'rgb'; P.rgb = [255, 159, 28]; }],
+    ['Teal Gel', '#2ec4b6', () => { P.mode = 'rgb'; P.rgb = [46, 196, 182]; }],
+    ['Magenta Gel', '#ec4899', () => { P.mode = 'rgb'; P.rgb = [236, 72, 153]; }]
   ].map(([name, hex, fn]) => {
     const b = h('button', { type: 'button', class: 'gel', title: name, 'aria-label': name, style: `background:${hex}` });
     b.addEventListener('click', () => { fn(); manual(); });
     return b;
   });
-  return h('div', { class: 'colorblock' },
-    h('div', { class: 'top' }, h('span', { class: 'lbl' }, 'Light color'), h('span', {}, swatchNow, swatchOut)),
-    seg, h('div', { style: 'height:10px' }), colorPanes.temp, colorPanes.rgb,
-    h('div', { class: 'sub' }, 'Gels'), h('div', { class: 'gels' }, gels));
+  return h('div', { class: 'block' },
+    h('div', { class: 'head' }, h('span', {}, 'Light Color'), h('span', {}, swatchNow, swatchOut)),
+    seg, h('div', { style: 'height:12px' }), colorPanes.temp, colorPanes.rgb,
+    h('div', { class: 'sub' }, 'Quick Gels'), h('div', { class: 'gels' }, gels));
 }
 
 const lookBtns = [], dirBtns = [];
-let invertSwitch, previewBtns = [];
+let previewBtns = [];
+let currentTab = 'light';
 
 function applyTarget(target) {
-  const keys = ['lx', 'ly', 'lz', 'intensity', 'radius', 'falloff', 'kelvin', 'ambient', 'exposure', 'shadow', 'soft', 'spec'];
+  const keys = ['lx', 'ly', 'lz', 'tx', 'ty', 'beam', 'intensity', 'radius', 'falloff', 'kelvin', 'ambient', 'exposure', 'shadow', 'soft', 'spec'];
   const from = {};
   keys.forEach(k => { from[k] = P[k]; });
   if (target.mode) P.mode = target.mode;
   if (target.rgb) P.rgb = target.rgb.slice();
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const dur = reduce ? 0 : 320, t0 = performance.now();
+  const myId = ++tweenId;                          // a newer tween or any manual edit cancels this one
   if (V === 'original') setView('relit');
   const step = now => {
+    if (myId !== tweenId) return;
     const u = dur ? clamp((now - t0) / dur, 0, 1) : 1, e = 1 - Math.pow(1 - u, 3);
     keys.forEach(k => { if (k in target) P[k] = from[k] + (target[k] - from[k]) * e; });
     invalidate();
@@ -1216,68 +1392,96 @@ function buildPanel() {
     dirBtns.push(b);
   });
   panel.append(h('div', { class: 'dock' },
-    h('div', { class: 'grp' }, h('div', { class: 'rowhead' }, 'Looks'), lookBtns),
-    h('div', { class: 'grp' }, h('div', { class: 'rowhead' }, 'Direction'), dirBtns)));
+    h('section', { class: 'grp', 'aria-labelledby': 'h-looks' }, h('h2', { class: 'rowhead sr', id: 'h-looks' }, 'Looks'), h('div', { class: 'chips two' }, lookBtns)),
+    h('section', { class: 'grp', 'aria-labelledby': 'h-dir' }, h('h2', { class: 'rowhead sr', id: 'h-dir' }, 'Direction'), h('div', { class: 'chips three' }, dirBtns))));
 
-  const tabBar = h('div', { class: 'tabs', role: 'tablist' });
+  const tabBar = h('div', { class: 'tabs', role: 'tablist', 'aria-label': 'Control Groups' });
   const panes = {}, tabBtns = {};
   TABS.forEach((t, i) => {
-    const b = h('button', { class: 'tab', type: 'button', role: 'tab', id: 'tab-' + t.id, 'aria-controls': 'pane-' + t.id, 'aria-selected': String(i === 0) }, t.label);
+    const b = h('button', { class: 'tab', type: 'button', role: 'tab', id: 'tab-' + t.id, 'aria-controls': 'pane-' + t.id, 'aria-selected': String(i === 0), tabindex: i === 0 ? '0' : '-1' }, t.label);
     b.addEventListener('click', () => selectTab(t.id));
     tabBtns[t.id] = b; tabBar.append(b);
     panes[t.id] = h('div', { class: 'pane', id: 'pane-' + t.id, role: 'tabpanel', 'aria-labelledby': 'tab-' + t.id, hidden: i !== 0 }, t.controls.map(makeSlider));
   });
   function selectTab(id) {
-    Object.keys(panes).forEach(k => { panes[k].hidden = k !== id; tabBtns[k].setAttribute('aria-selected', String(k === id)); });
+    currentTab = id;
+    Object.keys(panes).forEach(k => {
+      panes[k].hidden = k !== id;
+      tabBtns[k].setAttribute('aria-selected', String(k === id));
+      tabBtns[k].tabIndex = k === id ? 0 : -1;
+    });
   }
+  tabBar.addEventListener('keydown', e => {
+    const ids = TABS.map(t => t.id), cur = ids.indexOf(currentTab);
+    let n = -1;
+    if (e.key === 'ArrowRight') n = (cur + 1) % ids.length;
+    else if (e.key === 'ArrowLeft') n = (cur - 1 + ids.length) % ids.length;
+    else if (e.key === 'Home') n = 0;
+    else if (e.key === 'End') n = ids.length - 1;
+    if (n >= 0) { e.preventDefault(); selectTab(ids[n]); tabBtns[ids[n]].focus(); }
+  });
 
   const hover = window.matchMedia && matchMedia('(hover:hover)').matches;
-  panes.light.append(buildColorBlock(),
-    h('p', { class: 'hint', style: 'margin-top:14px' }, hover ? 'Drag on the photo to place the light. Scroll over it to change height.' : 'Drag on the photo to place the light. Use Height to raise or lower it.'));
+  panes.light.append(
+    makeSwitch('Aim Moves With Light', 'Turn off to orbit the light around a fixed aim point.', () => P.follow, v => { P.follow = v; }),
+    buildColorBlock(),
+    h('p', { class: 'hint', style: 'margin-top:16px' }, hover
+      ? 'Drag the sun to move the light and the ring to change where it aims. Scroll over the photo to change height.'
+      : 'Drag the sun to move the light and the ring to change where it aims. Use Height to raise or lower it.'));
 
-  invertSwitch = h('button', { class: 'switch', type: 'button', role: 'switch', 'aria-checked': 'false', 'aria-label': 'Invert depth' }, h('span', { class: 'knob' }));
-  invertSwitch.addEventListener('click', () => { P.invert = !P.invert; manual(); });
   panes.depth.append(
-    h('div', { class: 'row' }, h('div', { class: 'txt' }, 'Invert depth', h('small', {}, 'Use when dark areas should read as closer.')), invertSwitch));
-
+    makeSwitch('Invert Depth', 'Use when dark areas should read as closer.', () => P.invert, v => { P.invert = v; }));
   const pseg = h('div', { class: 'seg', role: 'group', 'aria-label': 'Preview' });
   [['Final', 0], ['Normals', 1], ['Depth', 2]].forEach(([label, v]) => {
     const b = h('button', { type: 'button', 'aria-pressed': 'false' }, label);
     b.addEventListener('click', () => { preview = v; invalidate(); });
     previewBtns.push(b); pseg.append(b);
   });
-  panes.depth.append(h('div', { class: 'ctl' }, h('div', { class: 'top' }, h('span', { class: 'lbl' }, 'Preview')), pseg),
-    h('p', { class: 'hint' }, 'Relight estimates surface direction from brightness. Check the normal map to see what the light is reacting to.'));
+  panes.depth.append(
+    h('div', { class: 'block' }, h('div', { class: 'head' }, h('span', {}, 'Preview')), pseg,
+      h('p', { class: 'hint' }, 'Relight estimates surface direction from brightness. Check the normal map to see what the light reacts to.')));
 
-  const reset = h('button', { class: 'btn ghost', type: 'button' }, 'Reset controls');
+  const reset = h('button', { class: 'btn ghost', type: 'button' }, 'Reset Controls');
   reset.addEventListener('click', () => {
+    const snap = JSON.stringify({ P, activeLook, preview });
+    cancelTween();
     Object.assign(P, DEFAULTS, { rgb: DEFAULTS.rgb.slice() });
     activeLook = 'Top-Left Key Light'; preview = 0; syncLooks(); invalidate();
+    toast('Controls reset.', 7000, {
+      label: 'Undo',
+      fn: () => { const s = JSON.parse(snap); Object.assign(P, s.P); activeLook = s.activeLook; preview = s.preview; syncLooks(); invalidate(); }
+    });
   });
   panel.append(tabBar, ...Object.values(panes), h('div', { class: 'foot' }, reset));
   syncLooks();
 }
 
+let lastGel = '';
 function syncControls() {
   const [r, g, b] = gelColor();
-  const root = document.documentElement;
-  root.style.setProperty('--gel', `rgb(${r},${g},${b})`);
-  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  root.style.setProperty('--gel-ink', lum > 135 ? '#1a1b1d' : '#ffffff');
-  sliderRefs.forEach(({ def, inp, out, read }) => {
+  const gelCss = `rgb(${r},${g},${b})`;
+  if (gelCss !== lastGel) {
+    lastGel = gelCss;
+    const root = document.documentElement;
+    root.style.setProperty('--gel', gelCss);
+    const L = relLum([r, g, b]);
+    root.style.setProperty('--gel-ink', contrast(L, relLum([26, 27, 29])) >= contrast(L, 1) ? '#1a1b1d' : '#ffffff');
+  }
+  sliderRefs.forEach(({ def, el, out, read }) => {
     const v = read();
-    if (inp.valueAsNumber !== v) inp.value = v;
-    out.textContent = def.fmt(v);
-    inp.style.setProperty('--p', ((v - def.min) / (def.max - def.min) * 100) + '%');
+    el.style.setProperty('--f', ((v - def.min) / (def.max - def.min)).toFixed(4));
+    el.setAttribute('aria-valuenow', String(v));
+    const t = def.fmt(v);
+    if (out.textContent !== t) { out.textContent = t; el.setAttribute('aria-valuetext', t); }
   });
   const c = lightRGB();
   swatchNow.style.background = `rgb(${c[0]},${c[1]},${c[2]})`;
-  swatchOut.textContent = P.mode === 'temp' ? Math.round(P.kelvin) + ' K' : '#' + c.map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+  swatchOut.textContent = P.mode === 'temp' ? Math.round(P.kelvin) + NB + 'K' : '#' + c.map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
   modeBtns.temp.setAttribute('aria-pressed', String(P.mode === 'temp'));
   modeBtns.rgb.setAttribute('aria-pressed', String(P.mode === 'rgb'));
   colorPanes.temp.hidden = P.mode !== 'temp';
   colorPanes.rgb.hidden = P.mode !== 'rgb';
-  invertSwitch.setAttribute('aria-checked', String(P.invert));
+  switchRefs.forEach(({ btn, get }) => btn.setAttribute('aria-checked', String(!!get())));
   previewBtns.forEach((bt, i) => bt.setAttribute('aria-pressed', String(i === preview)));
 }
 
@@ -1292,20 +1496,27 @@ document.querySelectorAll('.viewseg button').forEach(b => b.addEventListener('cl
 /* ---------------------------------------------------------------------- */
 /* Toast                                                                   */
 /* ---------------------------------------------------------------------- */
-const toastEl = $('#toast');
-let toastT = 0;
-function toast(msg, ms = 2800) {
-  toastEl.textContent = msg; toastEl.classList.add('on');
+const toastEl = $('#toast'), toastMsg = $('#toastMsg'), toastAct = $('#toastAct');
+let toastT = 0, toastFn = null;
+function toast(msg, ms = 2800, action) {
+  toastMsg.textContent = msg;
+  toastFn = action ? action.fn : null;
+  toastAct.hidden = !action;
+  if (action) toastAct.textContent = action.label;
+  toastEl.classList.toggle('act', !!action);
+  toastEl.classList.add('on');
   clearTimeout(toastT);
-  if (ms) toastT = setTimeout(() => toastEl.classList.remove('on'), ms);
+  if (ms) toastT = setTimeout(hideToast, ms);
 }
-function hideToast() { clearTimeout(toastT); toastEl.classList.remove('on'); }
+function hideToast() { clearTimeout(toastT); toastEl.classList.remove('on', 'act'); toastFn = null; }
+toastAct.addEventListener('click', () => { const f = toastFn; hideToast(); if (f) f(); });
 
 /* ---------------------------------------------------------------------- */
 /* Export                                                                  */
 /* ---------------------------------------------------------------------- */
 const sheet = $('#sheet'), pv = $('#pv'), meta = $('#meta'), dl = $('#dl');
 const exp = { canvas: null, url: null, fmt: 'png', size: null, token: 0 };
+let sheetOpener = null;
 
 function renderFull() {
   const gl = GL.gl, nat = state.nat;
@@ -1345,8 +1556,8 @@ function encodeExport() {
     if (exp.url) URL.revokeObjectURL(exp.url);
     exp.url = URL.createObjectURL(blob);
     const ext = exp.fmt === 'png' ? 'png' : 'jpg';
-    const img = h('img', { alt: 'Relit photo preview' });
-    img.onerror = () => {
+    const img = h('img', { alt: 'Relit photo preview', width: exp.size.w, height: exp.size.h });
+    img.onerror = () => {                       // blob: images can be blocked in sandboxed previews; fall back to a data URL
       if (img.dataset.fb) return;
       img.dataset.fb = '1';
       const fr = new FileReader();
@@ -1355,8 +1566,9 @@ function encodeExport() {
     };
     img.src = exp.url;
     pv.replaceChildren(img);
-    const note = (exp.size.w !== state.nat.w || exp.size.h !== state.nat.h) ? `, reduced from ${state.nat.w} × ${state.nat.h} to fit this device` : '';
-    meta.textContent = `${exp.size.w} × ${exp.size.h} px, ${exp.fmt.toUpperCase()}, ${(blob.size / 1048576).toFixed(1)} MB${note}`;
+    const note = (exp.size.w !== state.nat.w || exp.size.h !== state.nat.h)
+      ? `, reduced from ${nfInt.format(state.nat.w)}${NB}×${NB}${nfInt.format(state.nat.h)} to fit this device` : '';
+    meta.textContent = `${nfInt.format(exp.size.w)}${NB}×${NB}${nfInt.format(exp.size.h)}${NB}px, ${exp.fmt.toUpperCase()}, ${nfOne.format(blob.size / 1048576)}${NB}MB${note}`;
     dl.href = exp.url;
     dl.setAttribute('download', `${state.name}-relit.${ext}`);
     dl.textContent = `Download ${exp.fmt.toUpperCase()}`;
@@ -1366,17 +1578,19 @@ function encodeExport() {
 
 async function openExport() {
   if (!state.assets) return;
+  sheetOpener = document.activeElement;
   sheet.hidden = false;
-  pv.replaceChildren(h('span', {}, 'Rendering at full resolution'));
+  $('#sheetClose').focus();
+  pv.replaceChildren(h('span', {}, 'Rendering at full resolution…'));
   meta.textContent = '';
-  dl.setAttribute('aria-disabled', 'true'); dl.removeAttribute('href');
+  dl.setAttribute('aria-disabled', 'true'); dl.removeAttribute('href'); dl.textContent = 'Download';
   await nextFrame(); await nextFrame();
   try {
     const r = renderFull();
     exp.canvas = r.canvas; exp.size = { w: r.w, h: r.h };
     encodeExport();
   } catch (err) {
-    pv.replaceChildren(h('span', {}, 'Export failed. The photo may be too large for this device. Close this and try again.'));
+    pv.replaceChildren(h('span', {}, 'Export failed. The photo may be too large for this device. Close this, then try again or open a smaller photo.'));
   }
 }
 function closeExport() {
@@ -1384,11 +1598,20 @@ function closeExport() {
   if (exp.url) { URL.revokeObjectURL(exp.url); exp.url = null; }
   exp.canvas = null;
   pv.replaceChildren();
+  if (sheetOpener && sheetOpener.focus) sheetOpener.focus();
 }
 $('#btnExport').addEventListener('click', openExport);
 $('#sheetClose').addEventListener('click', closeExport);
 sheet.addEventListener('click', e => { if (e.target === sheet) closeExport(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !sheet.hidden) closeExport(); });
+sheet.addEventListener('keydown', e => {          // keep Tab inside the dialog
+  if (e.key !== 'Tab') return;
+  const f = Array.from(sheet.querySelectorAll('button, a[href]'));
+  if (!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
 document.querySelectorAll('#fmtSeg button').forEach(b => b.addEventListener('click', () => {
   exp.fmt = b.dataset.fmt;
   document.querySelectorAll('#fmtSeg button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
@@ -1400,7 +1623,7 @@ document.querySelectorAll('#fmtSeg button').forEach(b => b.addEventListener('cli
 /* ---------------------------------------------------------------------- */
 const fileIn = $('#file'), veil = $('#veil');
 $('#btnOpen').addEventListener('click', () => fileIn.click());
-$('#btnSample').addEventListener('click', async () => { await loadSample(); toast('Loaded the sample still life'); });
+$('#btnSample').addEventListener('click', async () => { await loadSample(); toast('Loaded the sample still life.'); });
 fileIn.addEventListener('change', () => {
   const f = fileIn.files && fileIn.files[0];
   if (f) loadFile(f).finally(() => { fileIn.value = ''; });
@@ -1424,8 +1647,8 @@ function showGLError(err) {
   const box = $('#glerr');
   box.hidden = false;
   box.replaceChildren(
-    h('strong', {}, 'Relighting needs WebGL'),
-    h('span', {}, 'This preview couldn’t start the graphics engine. Try another browser or enable hardware acceleration.'),
+    h('strong', {}, 'Relighting Needs WebGL'),
+    h('span', {}, 'This preview couldn’t start the graphics engine. Try another browser or turn on hardware acceleration.'),
     h('small', {}, String(err && err.message ? err.message : err)));
 }
 
